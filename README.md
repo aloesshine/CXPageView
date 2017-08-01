@@ -4,15 +4,20 @@
 
 ## 使用
 
-设置imageArray，一行代码搞定，详见demo
-
-![](demo.png)
+设置imageArray，一行代码搞定，详见demo及注释
 
 - 三种pageControl样式
 
+- 两种切换动画样式（淡入淡出，左右滑动）
+
 - 同时支持图片，gif，视频播放
+
+![](demo.png)
 
 ## 有话说
 
 小白一枚，有什么问题欢迎issue一起交流～
 
+## 参考
+
+[XRCarouselView](https://github.com/codingZero/XRCarouselView)

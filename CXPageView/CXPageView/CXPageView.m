@@ -40,6 +40,8 @@
 @property (nonatomic, assign) NSInteger currIndex;
 //将要显示图片的索引
 @property (nonatomic, assign) NSInteger nextIndex;
+//上一次显示图片的索引
+@property (nonatomic, assign) NSInteger preIndex;
 //定时器
 @property (nonatomic, strong) NSTimer *timer;
 //任务队列
@@ -642,9 +644,9 @@ static NSString *cache;
     
     _scrollView.frame = self.bounds;
     _currTitleLabel.frame = CGRectMake(20, self.height - TITLE_LABEL_H - 20 - DES_LABEL_H, self.width - 40, TITLE_LABEL_H);
-    _currDescLabel.frame = CGRectMake(20, self.height - 13 - DES_LABEL_H, self.width - 40, DES_LABEL_H);
+    _currDescLabel.frame = CGRectMake(20, self.height - 13 - DES_LABEL_H, self.width - 60 - self.cx_pageControl.width, DES_LABEL_H);
     _nextTitleLabel.frame = CGRectMake(20, self.height - TITLE_LABEL_H - 20 - DES_LABEL_H, self.width - 40, TITLE_LABEL_H);
-    _nextDescLabel.frame = CGRectMake(20, self.height - 13 - DES_LABEL_H, self.width - 40, DES_LABEL_H);
+    _nextDescLabel.frame = CGRectMake(20, self.height - 13 - DES_LABEL_H, self.width - 60 - self.cx_pageControl.width, DES_LABEL_H);
     [self layoutControlViews];
     //重新计算pageControl的位置
     if (_pageControlType == PageControlTypeDefault || _pageControlType == PageControlTypeShortLine) {
@@ -941,6 +943,7 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
 - (void)playVideo
 {
     NSString *url = _videoArray.count ? self.videoArray[_currIndex] : self.imageArray[_currIndex];
+    self.preIndex = _currIndex;
     if (!_playerItem) {
          self.playerItem = [AVPlayerItem playerItemWithURL:[NSURL URLWithString:url]];
     }
@@ -1011,6 +1014,9 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
 
 #pragma mark - scrollView 停止滚动监测
 - (void)scrollViewDidEndScroll {
+    if (_preIndex == _currIndex) {
+        return;
+    }
     if (self.isPlaying) {
         [self stopVideo];
     }
