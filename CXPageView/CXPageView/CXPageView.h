@@ -219,9 +219,9 @@ UIImage *gifImageNamed(NSString *imageName);
 /**
  *  修改标题控件的部分属性，不需要修改的传nil
  *
- *  @param color   字体颜色，默认为[UIColor whiteColor]
- *  @param font    字体，默认为[UIFont systemFontOfSize:24]
- *  @param bgColor 背景颜色，默认为[UIColor clearColor]
+ *  @param color   字体颜色，默认为 [UIColor whiteColor]
+ *  @param font    字体，默认为 [UIFont fontWithName:@"PingFangSC-Semibold" size:24]
+ *  @param bgColor 背景颜色，默认为 [UIColor clearColor]
  */
 - (void)setTitleTextColor:(UIColor *)color font:(UIFont *)font bgColor:(UIColor *)bgColor;
 

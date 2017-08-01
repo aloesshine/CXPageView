@@ -14,7 +14,7 @@
 #define HORMARGIN 10
 #define VERMARGIN 5
 #define DES_LABEL_H 20
-#define TITLE_LABEL_H 60
+#define TITLE_LABEL_H 70
 
 @interface CXPageView() <UIScrollViewDelegate>
 //轮播的图片/视频数组
@@ -226,7 +226,7 @@ static NSString *cache;
         _currTitleLabel.backgroundColor = [UIColor clearColor];
         _currTitleLabel.textColor = [UIColor whiteColor];
         _currTitleLabel.textAlignment = NSTextAlignmentLeft;
-        _currTitleLabel.font = [UIFont systemFontOfSize:24];
+        _currTitleLabel.font = [UIFont fontWithName:@"PingFangSC-Semibold" size:24];
         _currTitleLabel.numberOfLines = 2;
         _currTitleLabel.hidden = YES;
     }
@@ -241,7 +241,7 @@ static NSString *cache;
         _nextTitleLabel.backgroundColor = [UIColor clearColor];
         _nextTitleLabel.textColor = [UIColor whiteColor];
         _nextTitleLabel.textAlignment = NSTextAlignmentLeft;
-        _nextTitleLabel.font = [UIFont systemFontOfSize:24];
+        _nextTitleLabel.font = [UIFont fontWithName:@"PingFangSC-Semibold" size:24];
         _nextTitleLabel.numberOfLines = 2;
         _nextTitleLabel.hidden = YES;
     }
@@ -860,7 +860,15 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
         if (_changeMode == ChangeModeFade) {
             self.currImageView.alpha = offsetX / self.width - 1;
             self.otherImageView.alpha = 2 - offsetX / self.width;
-        } else self.otherImageView.frame = CGRectMake(self.width, 0, self.width, self.height);
+        } else {
+            self.otherImageView.frame = CGRectMake(self.width, 0, self.width, self.height);
+            self.currControlView.alpha = offsetX / self.width - 1;
+            self.currTitleLabel.alpha = offsetX / self.width - 1;
+            self.currDescLabel.alpha = offsetX / self.width - 1;
+            self.nextControlView.alpha = 2 - offsetX / self.width;
+            self.nextTitleLabel.alpha = 2 - offsetX / self.width;
+            self.nextDescLabel.alpha = 2 - offsetX / self.width;
+        }
         
         self.nextIndex = self.currIndex - 1;
         if (self.nextIndex < 0) self.nextIndex = _images.count - 1;
@@ -875,7 +883,15 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
         if (_changeMode == ChangeModeFade) {
             self.otherImageView.alpha = offsetX / self.width - 2;
             self.currImageView.alpha = 3 - offsetX / self.width;
-        } else self.otherImageView.frame = CGRectMake(CGRectGetMaxX(_currImageView.frame), 0, self.width, self.height);
+        }  else {
+            self.otherImageView.frame = CGRectMake(CGRectGetMaxX(_currImageView.frame), 0, self.width, self.height);
+            self.currControlView.alpha = 3 - offsetX / self.width;
+            self.currTitleLabel.alpha = 3 - offsetX / self.width;
+            self.currDescLabel.alpha = 3 - offsetX / self.width;
+            self.nextControlView.alpha = offsetX / self.width - 2;
+            self.nextTitleLabel.alpha = offsetX / self.width - 2;
+            self.nextDescLabel.alpha = offsetX / self.width - 2;
+        }
         
         self.nextIndex = (self.currIndex + 1) % _images.count;
         self.otherImageView.image = self.images[self.nextIndex];
@@ -894,6 +910,13 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
     if (_changeMode == ChangeModeFade) {
         self.currImageView.alpha = 1;
         self.otherImageView.alpha = 0;
+    } else {
+        self.currControlView.alpha = 1;
+        self.currTitleLabel.alpha = 1;
+        self.currDescLabel.alpha = 1;
+        self.nextControlView.alpha = 0;
+        self.nextTitleLabel.alpha = 0;
+        self.nextDescLabel.alpha = 0;
     }
     //切换到下一张图片
     self.currImageView.image = self.otherImageView.image;
