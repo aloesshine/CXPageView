@@ -2,7 +2,7 @@
 //  AppDelegate.m
 //  CXPageView
 //
-//  Created by 郭晨香 on 2017/7/22.
+//  Created by 郭晨香 on 2017/7/31.
 //  Copyright © 2017年 郭晨香. All rights reserved.
 //
 
@@ -18,10 +18,10 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
-    
-    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.window.rootViewController = [[CXViewController alloc] init];
     [self.window makeKeyAndVisible];
+    
     return YES;
 }
 

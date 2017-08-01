@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <AVFoundation/AVFoundation.h>
 @class CXPageView;
 
 typedef void(^ClickBlock)(NSInteger index);
@@ -100,11 +101,13 @@ UIImage *gifImageNamed(NSString *imageName);
 /**
  *  轮播的图片数组，视频占位图片，可以是本地图片（UIImage，不能是图片名称），也可以是网络路径
  *  支持网络gif图片，本地gif需做处理后传入
+ *  若传入视频路径，取第一帧作为占位图
  */
 @property (nonatomic, strong) NSArray *imageArray;
 
 /**
  *  轮播的视频数组
+ *  若需要自行设置视频占位图，imageArray中传占位url，videoArray中传视频url
  */
 @property (nonatomic, strong) NSArray *videoArray;
 
@@ -125,6 +128,11 @@ UIImage *gifImageNamed(NSString *imageName);
  *  设置为nil或空数组，控件会隐藏
  */
 @property (nonatomic, strong) NSArray *descArray;
+
+/**
+ *  是否开启自动轮播，默认为YES
+ */
+@property (nonatomic, assign) BOOL autoCyclePlay;
 
 /**
  *  每一页停留时间，默认为5s，最少2s
@@ -148,6 +156,9 @@ UIImage *gifImageNamed(NSString *imageName);
 @property (nonatomic, weak) id<CXPageViewDelegate> delegate;
 
 
+@property (nonatomic, strong) AVPlayerLayer *playerLayer;
+
+@property (nonatomic, assign) BOOL isPlaying;
 #pragma mark 方法
 
 /**
@@ -228,7 +239,13 @@ UIImage *gifImageNamed(NSString *imageName);
  */
 + (void)clearDiskCache;
 
+/**
+ *  开始播放
+ */
 - (void)playVideo;
+/**
+*  停止播放
+*/
 - (void)stopVideo;
 
 @end

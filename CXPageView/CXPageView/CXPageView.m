@@ -9,8 +9,6 @@
 #import "CXPageView.h"
 #import "CXPageControl.h"
 #import <ImageIO/ImageIO.h>
-#import <AVFoundation/AVFoundation.h>
-#import "AVPlayerItem+WGCacheSupport.h"
 
 #define DEFAULTTIME 5
 #define HORMARGIN 10
@@ -58,7 +56,7 @@
 
 // 视频播放
 @property (nonatomic, strong) AVPlayer *player;
-@property (nonatomic, strong) AVPlayerLayer *playerLayer;
+@property (nonatomic, strong) AVPlayerItem *playerItem;
 
 @end
 
@@ -97,19 +95,16 @@ static NSString *cache;
     [self addSubview:self.scrollView];
     self.pageControlType = PageControlTypeDefault;
     self.pagePosition = PositionBottomCenter;
+    self.autoCyclePlay = YES;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerItemDidPlayToEndTimeNotification:) name:AVPlayerItemDidPlayToEndTimeNotification  object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(headerPlayVideo) name:NotificationPageViewShow object:nil];
+    // 进入前台，后台的处理
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidEnterBackground:) name:UIApplicationWillResignActiveNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground:) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
-- (void)headerPlayVideo
-{
-    [self stopVideo];
-    [self playVideo];
 }
 
 #pragma mark- frame相关
@@ -285,6 +280,7 @@ static NSString *cache;
 #pragma mark 设置分页控件类型
 - (void)setPageControlType:(PageControlType)pageControlType {
     _pageControlType = pageControlType;
+    
     switch (pageControlType) {
             
         case PageControlTypeDefault:
@@ -334,7 +330,7 @@ static NSString *cache;
         } else if ([imageArray[i] isKindOfClass:[NSString class]]){
             //如果是网络图片，则先添加占位图片，下载完成后替换
             if (_placeholderImage) [_images addObject:_placeholderImage];
-            else [_images addObject:[UIImage imageNamed:@"占位logo"]];
+            else [_images addObject:[UIImage imageNamed:@"CXPlaceholder"]];
             [self downloadImages:i];
         }
     }
@@ -362,6 +358,12 @@ static NSString *cache;
             break;
     }
     [self layoutSubviews];
+    
+    // 第一个视频自动播放，建议放到VC中的合适的时机，放在这儿加载的时候会卡
+    if (_autoCyclePlay) {
+        [self stopVideo];
+        [self playVideo];
+    }
 }
 
 #pragma mark 设置标题数组
@@ -434,13 +436,17 @@ static NSString *cache;
             [self insertSubview:self.otherImageView atIndex:1];
         }
         
-//        [self startTimer];
+        if (_autoCyclePlay) {
+            [self startTimer];
+        }
     } else {
         //只要一张图片时，scrollview不可滚动，且关闭定时器
         self.scrollView.contentSize = CGSizeZero;
         self.scrollView.contentOffset = CGPointZero;
         self.currImageView.frame = CGRectMake(0, 0, self.width, self.height);
-//        [self stopTimer];
+        if (_autoCyclePlay) {
+            [self stopTimer];
+        }
     }
 }
 
@@ -572,7 +578,9 @@ static NSString *cache;
 #pragma mark 设置定时器时间
 - (void)setTime:(NSTimeInterval)time {
     _time = time;
-//    [self startTimer];
+    if (_autoCyclePlay) {
+        [self startTimer];
+    }
 }
 
 #pragma mark- --------定时器相关方法--------
@@ -699,10 +707,15 @@ static NSString *cache;
     NSBlockOperation *download = [NSBlockOperation blockOperationWithBlock:^{
         UIImage *image;
         NSData *data;
-        data = [NSData dataWithContentsOfURL:[NSURL URLWithString:urlString]];
-        if (!data) return;
-        image = getImageWithData(data);
-    
+        if ([self isVideoUrlString:urlString]) {
+            image = [self getThumbailImageRequestWithUrlString:urlString];
+            data = UIImagePNGRepresentation(image);
+            if (!data) return;
+        } else {
+            data = [NSData dataWithContentsOfURL:[NSURL URLWithString:urlString]];
+            if (!data) return;
+            image = getImageWithData(data);
+        }
         //取到的data有可能不是图片
         if (image) {
             self.images[index] = image;
@@ -799,7 +812,6 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
     for (NSString *fileName in contents) {
         [[NSFileManager defaultManager] removeItemAtPath:[cache stringByAppendingPathComponent:fileName] error:nil];
     }
-    [AVPlayerItem removeVideoCache];
 }
 
 #pragma mark 当图片滚动过半时就修改当前页码
@@ -906,44 +918,48 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
         default:
             break;
     }
-    
+    if (_autoCyclePlay) {
+        [self stopVideo];
+        [self playVideo];
+    }
 }
 
 - (void)stopVideo
 {
-    [self.player pause];
-    self.player = nil;
-    [self.playerLayer removeFromSuperlayer];
-    self.playerLayer = nil;
+    if (_player) {
+        self.player = nil;
+    }
+    if (_playerLayer) {
+        [self.playerLayer removeFromSuperlayer];
+        self.playerLayer = nil;
+    }
+    self.isPlaying = NO;
+    self.playerItem = nil;
 }
 
 // 在当前imageView播放视频
 - (void)playVideo
 {
-    NSString *url = self.videoArray[_currIndex];
-    // 再开一个线程创建 AVPlayerItem
-    dispatch_queue_t globalQueue = dispatch_get_global_queue(0, 0);
-    dispatch_async(globalQueue, ^{
-        //创建AVPlayerItem
-        AVPlayerItem *playerItem=[AVPlayerItem wg_playerItemWithURL:[NSURL URLWithString:url]];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (playerItem) {
-                if (!_player) {
-                    self.player = [AVPlayer playerWithPlayerItem:playerItem];
-                    self.player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
-                    self.playerLayer = [AVPlayerLayer playerLayerWithPlayer:self.player];
-                    self.playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-                    self.playerLayer.frame = self.currImageView.bounds;
-                    [self.currImageView.layer addSublayer:self.playerLayer];
-                    [self.currImageView bringSubviewToFront:self.currControlView];
-                    [self.currImageView bringSubviewToFront:self.currTitleLabel];
-                    [self.currImageView bringSubviewToFront:self.currDescLabel];
-                    [self.player play];
-                }
-            }
-        });
-    });
-    
+    NSString *url = _videoArray.count ? self.videoArray[_currIndex] : self.imageArray[_currIndex];
+    if (!_playerItem) {
+         self.playerItem = [AVPlayerItem playerItemWithURL:[NSURL URLWithString:url]];
+    }
+    if (!_player) {
+        self.player = [AVPlayer playerWithPlayerItem:self.playerItem];
+    }
+    [self.player setVolume:0.0];
+    self.player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
+    if (!_playerLayer) {
+        self.playerLayer = [AVPlayerLayer playerLayerWithPlayer:self.player];
+        self.playerLayer.frame = self.currImageView.bounds;
+        self.playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
+        [self.currImageView.layer addSublayer:self.playerLayer];
+        [self.currImageView bringSubviewToFront:self.currControlView];
+        [self.currImageView bringSubviewToFront:self.currTitleLabel];
+        [self.currImageView bringSubviewToFront:self.currDescLabel];
+    }
+    [self.player play];
+    self.isPlaying = YES;
 }
 
 - (void)playerItemDidPlayToEndTimeNotification:(NSNotification *)sender
@@ -951,15 +967,30 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
     [_player seekToTime:kCMTimeZero]; // seek to zero
 }
 
+- (void)applicationDidEnterBackground:(NSNotification *)nf
+{
+    [self stopVideo];
+}
+- (void)applicationWillEnterForeground:(NSNotification *)nf
+{
+    if (!self.isPlaying) {
+        [self playVideo];
+    }
+}
+
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-//    [self stopTimer];
+    if (_autoCyclePlay) {
+        [self stopTimer];
+    }
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
-//    [self startTimer];
+    if (_autoCyclePlay) {
+        [self startTimer];
+    }
     
     BOOL dragToDragStop = scrollView.tracking && !scrollView.dragging && !scrollView.decelerating;
-    if (dragToDragStop) {
+    if (dragToDragStop && (!_autoCyclePlay)) {
         [self scrollViewDidEndScroll];
     }
 }
@@ -973,13 +1004,16 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
     else [self changeToNext];
     
     BOOL scrollToScrollStop = !scrollView.tracking && !scrollView.dragging && !scrollView.decelerating;
-    if (scrollToScrollStop) {
+    if (scrollToScrollStop && (!_autoCyclePlay)) {
         [self scrollViewDidEndScroll];
     }
 }
 
 #pragma mark - scrollView 停止滚动监测
 - (void)scrollViewDidEndScroll {
+    if (self.isPlaying) {
+        [self stopVideo];
+    }
     [self playVideo];
 }
 

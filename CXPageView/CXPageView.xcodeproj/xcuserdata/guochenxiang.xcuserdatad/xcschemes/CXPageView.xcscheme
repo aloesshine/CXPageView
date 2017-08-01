@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "014D0B971F22E6140040F6DC"
+               BlueprintIdentifier = "012F368B1F2F624F00767239"
                BuildableName = "CXPageView.app"
                BlueprintName = "CXPageView"
                ReferencedContainer = "container:CXPageView.xcodeproj">
@@ -32,7 +32,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "014D0BB01F22E6140040F6DC"
+               BlueprintIdentifier = "012F36A41F2F624F00767239"
                BuildableName = "CXPageViewTests.xctest"
                BlueprintName = "CXPageViewTests"
                ReferencedContainer = "container:CXPageView.xcodeproj">
@@ -42,7 +42,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "014D0BBB1F22E6140040F6DC"
+               BlueprintIdentifier = "012F36AF1F2F624F00767239"
                BuildableName = "CXPageViewUITests.xctest"
                BlueprintName = "CXPageViewUITests"
                ReferencedContainer = "container:CXPageView.xcodeproj">
@@ -52,7 +52,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "014D0B971F22E6140040F6DC"
+            BlueprintIdentifier = "012F368B1F2F624F00767239"
             BuildableName = "CXPageView.app"
             BlueprintName = "CXPageView"
             ReferencedContainer = "container:CXPageView.xcodeproj">
@@ -75,7 +75,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "014D0B971F22E6140040F6DC"
+            BlueprintIdentifier = "012F368B1F2F624F00767239"
             BuildableName = "CXPageView.app"
             BlueprintName = "CXPageView"
             ReferencedContainer = "container:CXPageView.xcodeproj">
@@ -94,7 +94,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "014D0B971F22E6140040F6DC"
+            BlueprintIdentifier = "012F368B1F2F624F00767239"
             BuildableName = "CXPageView.app"
             BlueprintName = "CXPageView"
             ReferencedContainer = "container:CXPageView.xcodeproj">
