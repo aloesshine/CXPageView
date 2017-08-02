@@ -207,13 +207,12 @@ UIImage *gifImageNamed(NSString *imageName);
 #pragma mark - 自定义短线分页控件 - PageControlTypeShortLine
 /**
  *  设置分页控件 是否显示页码（默认显示），页码颜色（默认 white），字体大小(默认10)
- *  选中状态的短线长度（默认14），非选中状态的短线长度（默认8），短线高度（默认2），短线间间隔（默认4）
- *  选中状态 > 非选中状态
+ *  短线长度（默认14），短线高度（默认2），短线间间隔（默认4）
  *  选中短线颜色 ： 默认 white
  *  未选中短线颜色 ： 默认 gray
  *  不需设置的设为 nil / 0 即可
  */
-- (void)setIsShowPagination:(BOOL)isShowPagination PagiationColor:(UIColor *)pagiationColor fontSize:(CGFloat)fontSize SelectedWidth:(CGFloat)selectedWidth otherWidth:(CGFloat)otherWidth height:(CGFloat)heigth spaceWidth:(CGFloat)spaceWidth selectedColor:(UIColor *)selectedColor otherColor:(UIColor *)otherColor;
+- (void)setIsShowPagination:(BOOL)isShowPagination PagiationColor:(UIColor *)pagiationColor fontSize:(CGFloat)fontSize lineWidth:(CGFloat)lineWidth height:(CGFloat)heigth spaceWidth:(CGFloat)spaceWidth selectedColor:(UIColor *)selectedColor otherColor:(UIColor *)otherColor;
 
 #pragma mark - 标题及描述控件
 /**

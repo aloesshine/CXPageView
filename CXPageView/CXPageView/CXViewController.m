@@ -55,7 +55,7 @@
                                @"xiangkan | 3:29"
                                ];
     [_pageView setDescTextColor:[UIColor colorWithWhite:0.8 alpha:1] font:nil bgColor:nil];
-    [_pageView setIsShowPagination:YES PagiationColor:[UIColor colorWithWhite:0.8 alpha:1] fontSize:0 SelectedWidth:0 otherWidth:0 height:0 spaceWidth:0 selectedColor:[UIColor colorWithRed:249 / 255.0 green:87 / 255.0 blue:73 / 255.0 alpha:1] otherColor:[UIColor colorWithWhite:0.6 alpha:1]];
+    [_pageView setIsShowPagination:YES PagiationColor:[UIColor colorWithWhite:0.8 alpha:1] fontSize:0 lineWidth:0 height:0 spaceWidth:0 selectedColor:[UIColor colorWithRed:249 / 255.0 green:87 / 255.0 blue:73 / 255.0 alpha:1] otherColor:[UIColor colorWithWhite:0.6 alpha:1]];
     _pageView.imageArray = imagesURLStrings;
     _pageView.pagePosition = PositionBottomRight;
 }

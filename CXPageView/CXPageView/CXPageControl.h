@@ -33,11 +33,10 @@
 
 #pragma mark - publicMethod
 /**
- * 设置选中状态的短线长度（默认14），非选中状态的短线长度（默认8），短线高度（默认2），短线间间隔（默认4）  
- * 选中状态 > 非选中状态
+ * 设置短线长度（默认14)，短线高度（默认2），短线间间隔（默认4）
  * 不需设置的设为nil即可
  */
-- (void)setSelectedWidth:(CGFloat)selectedWidth otherWidth:(CGFloat)otherWidth height:(CGFloat)heigth spaceWidth:(CGFloat)spaceWidth;
+- (void)setLineWidth:(CGFloat)lineWidth height:(CGFloat)heigth spaceWidth:(CGFloat)spaceWidth;
 
 /**
  * 设置页码颜色（默认 white），字体大小(默认10)
@@ -49,5 +48,10 @@
  * 返回控件的宽度
  */
 - (CGFloat)width;
+
+/**
+ * 滑动动画
+ */
+- (void)slidePageControlAtProgress:(CGFloat)rate toNext:(BOOL)toNext;
 
 @end

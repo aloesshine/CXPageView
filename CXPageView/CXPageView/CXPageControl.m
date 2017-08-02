@@ -11,8 +11,9 @@
 @interface CXPageControl()
 
 @property (nonatomic, strong) UILabel *pagiationLabel; // 页码Label
-@property (nonatomic, assign) CGFloat selectedWidth; // 选中短线宽度
-@property (nonatomic, assign) CGFloat otherWidth; // 未选中短线宽度
+@property (nonatomic, strong) UIView *selectedLine; // 选中View
+@property (nonatomic, strong) NSMutableArray *otherViewsArray; // 未选中Views
+@property (nonatomic, assign) CGFloat lineWidth; // 短线宽度
 @property (nonatomic, assign) CGFloat lineHeight; // 短线高度
 @property (nonatomic, assign) CGFloat spaceWidth; // 短线间间隔
 
@@ -40,12 +41,12 @@
 {
     self.backgroundColor = [UIColor clearColor];
     _currentPage = 0;
-    _selectedWidth = 14;
-    _otherWidth = 8;
+    _lineWidth = 14;
     _spaceWidth = 4;
     _lineHeight = 2;
     _selectedColor = [UIColor whiteColor];
     _otherColor =  [UIColor grayColor];
+    _otherViewsArray = [NSMutableArray array];
     _isShowPagination = YES;
     [self addSubview: self.pagiationLabel];
 }
@@ -59,7 +60,7 @@
 
 - (CGFloat)width
 {
-    return (_numberOfPages - 1 ) * (_otherWidth + _spaceWidth) + _selectedWidth;
+    return (_numberOfPages - 1 ) * (_lineWidth + _spaceWidth) + _lineWidth;
 }
 
 - (CGFloat)x
@@ -79,6 +80,7 @@
     if(_numberOfPages != numberOfPages) {
         _numberOfPages = numberOfPages;
         [self drawPagiationLine];
+        [self drawCurrentPage];
     }
 }
 
@@ -87,7 +89,7 @@
     if(_currentPage != currentPage)
     {
         _currentPage = currentPage;
-        [self drawPagiationLine]; // 画线
+        [self drawCurrentPage];
     }
 }
 
@@ -95,7 +97,7 @@
 {
     if(_selectedColor != selectedColor) {
         _selectedColor = selectedColor;
-        [self drawPagiationLine];
+        _selectedLine.backgroundColor = _selectedColor;
     }
 }
 
@@ -103,7 +105,9 @@
 {
     if (_otherColor != otherColor) {
         _otherColor = otherColor;
-        [self drawPagiationLine];
+        for (UIView *line in self.otherViewsArray) {
+            line.backgroundColor = _otherColor;
+        }
     }
 }
 
@@ -131,40 +135,46 @@
 - (void)drawPagiationLine
 {
     // 移除之前的view
-    for (UIView *line in self.subviews) {
-        if (line != _pagiationLabel) {
-            [line removeFromSuperview];
-        }
+    for (UIView *line in self.otherViewsArray) {
+        [line removeFromSuperview];
     }
     // 定义新的view
     for (int i = 0; i < _numberOfPages; i++) {
-        CGFloat lineX = (_otherWidth + _spaceWidth) * i;
-        if (i > _currentPage) lineX += (_selectedWidth - _otherWidth);
-        CGFloat lineW = (i == _currentPage) ? _selectedWidth : _otherWidth;
-        UIView *line = [[UIView alloc] initWithFrame:CGRectMake(lineX, [self height] - _lineHeight, lineW, _lineHeight)];
+        CGFloat lineX = (_lineWidth + _spaceWidth) * i;
+        UIView *line = [[UIView alloc] initWithFrame:CGRectMake(lineX, [self height] - _lineHeight, _lineWidth, _lineHeight)];
         line.backgroundColor = _otherColor;
-        // 调整 Label 的 Frame
-        if (i == _currentPage) {
-            self.pagiationLabel.frame = CGRectMake(lineX, 0, lineW, [self height] - _lineHeight);
-            self.pagiationLabel.text = [NSString stringWithFormat:@"%02d",i  + 1];
-            line.backgroundColor = _selectedColor;
-        }
         [self addSubview:line];
+        [self.otherViewsArray addObject:line];
     }
+}
+
+- (void)drawCurrentPage
+{
+    if (!_selectedLine) {
+        _selectedLine = [[UIView alloc] init];
+        _selectedLine.backgroundColor = _selectedColor;
+        [self addSubview:_selectedLine];
+    }
+    CGFloat lineX = (_lineWidth + _spaceWidth) * _currentPage;
+    _selectedLine.frame = CGRectMake(lineX, [self height] - _lineHeight, _lineWidth, _lineHeight);
+    // 调整 Label 的 Frame
+    self.pagiationLabel.frame = CGRectMake(lineX, 0, _lineWidth, [self height] - _lineHeight);
+    self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",_currentPage  + 1];
+    [self bringSubviewToFront:_selectedLine];
 }
 
 #pragma mark - publicMethod
 /**
- * 设置选中状态的短线长度（默认14），非选中状态的短线长度（默认8），短线高度（默认2），短线间间隔（默认4）
+ * 设置短线长度（默认14），短线高度（默认2），短线间间隔（默认4）
  * 不需设置的设为nil即可
  */
-- (void)setSelectedWidth:(CGFloat)selectedWidth otherWidth:(CGFloat)otherWidth height:(CGFloat)heigth spaceWidth:(CGFloat)spaceWidth
+- (void)setLineWidth:(CGFloat)lineWidth height:(CGFloat)heigth spaceWidth:(CGFloat)spaceWidth
 {
-    if(selectedWidth) _selectedWidth = selectedWidth;
-    if(otherWidth) _otherWidth = otherWidth;
+    if(lineWidth) _lineWidth = lineWidth;
     if (heigth) _lineHeight = heigth;
     if (spaceWidth) _spaceWidth = spaceWidth;
     [self drawPagiationLine];
+    [self drawCurrentPage];
 }
 
 /**
@@ -175,6 +185,32 @@
 {
     if (pagiationColor) self.pagiationLabel.textColor = pagiationColor;
     if (fontSize) self.pagiationLabel.font = [UIFont systemFontOfSize:fontSize];
+}
+
+// 页码切换动画
+- (void)slidePageControlAtProgress:(CGFloat)rate toNext:(BOOL)toNext
+{
+    CGFloat lineX = (_lineWidth + _spaceWidth) * _currentPage;
+    if (!toNext) {
+        if (rate <= 0.5) {
+            _selectedLine.frame = CGRectMake(_selectedLine.frame.origin.x, _selectedLine.frame.origin.y, _lineWidth + (_spaceWidth + _lineWidth) * (rate / 0.5), _lineHeight);
+            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",_currentPage  + 1];
+        } else {
+            _selectedLine.frame = CGRectMake(lineX + (rate / 0.5 - 1) * (_spaceWidth + _lineWidth), _selectedLine.frame.origin.y, _lineWidth + (2 - 2 * rate) * (_lineWidth + _spaceWidth), _lineHeight);
+            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",(_currentPage  + 1) % _numberOfPages + 1];
+        }
+        // 调整 Label 的 Frame
+        self.pagiationLabel.frame = CGRectMake(lineX + rate * (_spaceWidth + _lineWidth), 0, _lineWidth, [self height] - _lineHeight);
+    } else {
+        if (rate <= 0.5) {
+            _selectedLine.frame = CGRectMake(lineX - (_spaceWidth + _lineWidth) * 2 * rate, _selectedLine.frame.origin.y, _lineWidth + (_spaceWidth + _lineWidth) * (rate / 0.5), _lineHeight);
+            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",_currentPage  + 1];
+        } else {
+            _selectedLine.frame = CGRectMake(lineX - (_spaceWidth + _lineWidth), _selectedLine.frame.origin.y, _lineWidth + (2 - 2 * rate) * (_lineWidth + _spaceWidth), _lineHeight);
+            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",_currentPage ? _currentPage : _numberOfPages];
+        }
+        self.pagiationLabel.frame = CGRectMake(lineX - rate * (_spaceWidth + _lineWidth), 0, _lineWidth, [self height] - _lineHeight);
+    }
 }
 
 @end

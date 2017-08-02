@@ -181,6 +181,7 @@ static NSString *cache;
 {
     if (!_cx_pageControl) {
         _cx_pageControl = [[CXPageControl alloc] init];
+        _cx_pageControl.clipsToBounds = YES;
         _cx_pageControl.userInteractionEnabled = NO;
         _cx_pageControl.hidden = YES;
     }
@@ -491,11 +492,11 @@ static NSString *cache;
 }
 
 #pragma mark - 设置ShortLine分页控件
-- (void)setIsShowPagination:(BOOL)isShowPagination PagiationColor:(UIColor *)pagiationColor fontSize:(CGFloat)fontSize SelectedWidth:(CGFloat)selectedWidth otherWidth:(CGFloat)otherWidth height:(CGFloat)heigth spaceWidth:(CGFloat)spaceWidth selectedColor:(UIColor *)selectedColor otherColor:(UIColor *)otherColor
+- (void)setIsShowPagination:(BOOL)isShowPagination PagiationColor:(UIColor *)pagiationColor fontSize:(CGFloat)fontSize lineWidth:(CGFloat)lineWidth height:(CGFloat)heigth spaceWidth:(CGFloat)spaceWidth selectedColor:(UIColor *)selectedColor otherColor:(UIColor *)otherColor
 {
     if (isShowPagination) self.cx_pageControl.isShowPagination = isShowPagination;
     [self.cx_pageControl setPagiationColor:pagiationColor fontSize:fontSize];
-    [self.cx_pageControl setSelectedWidth:selectedWidth otherWidth:otherWidth height:heigth spaceWidth:spaceWidth];
+    [self.cx_pageControl setLineWidth:lineWidth height:heigth spaceWidth:spaceWidth];
     if (selectedColor) self.cx_pageControl.selectedColor = selectedColor;
     if (otherColor) self.cx_pageControl.otherColor = otherColor;
 }
@@ -840,7 +841,6 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
             break;
         }
         case PageControlTypeShortLine:
-            self.cx_pageControl.currentPage = currP;
             break;
             
         default:
@@ -869,7 +869,9 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
             self.nextTitleLabel.alpha = 2 - offsetX / self.width;
             self.nextDescLabel.alpha = 2 - offsetX / self.width;
         }
-        
+        if (!self.cx_pageControl.hidden) {
+            [self.cx_pageControl slidePageControlAtProgress: 2 - offsetX / self.width toNext:YES];
+        }
         self.nextIndex = self.currIndex - 1;
         if (self.nextIndex < 0) self.nextIndex = _images.count - 1;
         self.otherImageView.image = self.images[self.nextIndex];
@@ -879,7 +881,7 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
             [self changeToNext];
         }
     //向左滚动
-    } else if (offsetX > self.width * 2){
+    } else if (offsetX > self.width * 2) {
         if (_changeMode == ChangeModeFade) {
             self.otherImageView.alpha = offsetX / self.width - 2;
             self.currImageView.alpha = 3 - offsetX / self.width;
@@ -892,7 +894,9 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
             self.nextTitleLabel.alpha = offsetX / self.width - 2;
             self.nextDescLabel.alpha = offsetX / self.width - 2;
         }
-        
+        if (!self.cx_pageControl.hidden) {
+            [self.cx_pageControl slidePageControlAtProgress: offsetX / self.width - 2 toNext:NO];
+        }
         self.nextIndex = (self.currIndex + 1) % _images.count;
         self.otherImageView.image = self.images[self.nextIndex];
         self.nextTitleLabel.text = self.titleArray[self.nextIndex];
