@@ -194,20 +194,20 @@
     if (!toNext) {
         if (rate <= 0.5) {
             _selectedLine.frame = CGRectMake(_selectedLine.frame.origin.x, _selectedLine.frame.origin.y, _lineWidth + (_spaceWidth + _lineWidth) * (rate / 0.5), _lineHeight);
-            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",_currentPage  + 1];
+            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",(long)_currentPage  + 1];
         } else {
             _selectedLine.frame = CGRectMake(lineX + (rate / 0.5 - 1) * (_spaceWidth + _lineWidth), _selectedLine.frame.origin.y, _lineWidth + (2 - 2 * rate) * (_lineWidth + _spaceWidth), _lineHeight);
-            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",(_currentPage  + 1) % _numberOfPages + 1];
+            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",((long)_currentPage  + 1) % _numberOfPages + 1];
         }
         // 调整 Label 的 Frame
         self.pagiationLabel.frame = CGRectMake(lineX + rate * (_spaceWidth + _lineWidth), 0, _lineWidth, [self height] - _lineHeight);
     } else {
         if (rate <= 0.5) {
             _selectedLine.frame = CGRectMake(lineX - (_spaceWidth + _lineWidth) * 2 * rate, _selectedLine.frame.origin.y, _lineWidth + (_spaceWidth + _lineWidth) * (rate / 0.5), _lineHeight);
-            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",_currentPage  + 1];
+            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",(long)_currentPage  + 1];
         } else {
             _selectedLine.frame = CGRectMake(lineX - (_spaceWidth + _lineWidth), _selectedLine.frame.origin.y, _lineWidth + (2 - 2 * rate) * (_lineWidth + _spaceWidth), _lineHeight);
-            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",_currentPage ? _currentPage : _numberOfPages];
+            self.pagiationLabel.text = [NSString stringWithFormat:@"%02ld",_currentPage ?(long) _currentPage : (long)_numberOfPages];
         }
         self.pagiationLabel.frame = CGRectMake(lineX - rate * (_spaceWidth + _lineWidth), 0, _lineWidth, [self height] - _lineHeight);
     }

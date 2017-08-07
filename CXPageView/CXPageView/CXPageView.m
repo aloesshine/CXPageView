@@ -59,6 +59,8 @@
 // 视频播放
 @property (nonatomic, strong) AVPlayer *player;
 @property (nonatomic, strong) AVPlayerItem *playerItem;
+// 视频缓存
+@property (nonatomic, strong) NSMutableDictionary<NSString *, AVURLAsset *> *assetCache;
 
 @end
 
@@ -93,6 +95,7 @@ static NSString *cache;
 
 #pragma mark 初始化控件
 - (void)initSubView {
+    self.assetCache = [NSMutableDictionary dictionary];
     self.autoCache = YES;
     [self addSubview:self.scrollView];
     self.pageControlType = PageControlTypeDefault;
@@ -347,6 +350,7 @@ static NSString *cache;
             
         case PageControlTypeDefault:
             self.pageControl.numberOfPages = _images.count;
+            self.pageControl.currentPage = 0;
             break;
             
         case PageControlTypeLine:
@@ -355,12 +359,16 @@ static NSString *cache;
             
         case PageControlTypeShortLine:
             self.cx_pageControl.numberOfPages = _images.count;
+            self.cx_pageControl.currentPage = 0;
             break;
             
         default:
             break;
     }
-    [self layoutSubviews];
+    //重新计算pageControl的位置
+    if (_pageControlType == PageControlTypeDefault || _pageControlType == PageControlTypeShortLine) {
+        self.pagePosition = self.pagePosition;
+    }
     
     // 第一个视频自动播放，建议放到VC中的合适的时机，放在这儿加载的时候会卡
     if (_autoCyclePlay) {
@@ -956,6 +964,7 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
 - (void)stopVideo
 {
     if (_player) {
+        [self.player pause];
         self.player = nil;
     }
     if (_playerLayer) {
@@ -969,10 +978,21 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
 // 在当前imageView播放视频
 - (void)playVideo
 {
-    NSString *url = _videoArray.count ? self.videoArray[_currIndex] : self.imageArray[_currIndex];
-    self.preIndex = _currIndex;
+    NSString *urlS = _videoArray.count ? self.videoArray[_currIndex] : self.imageArray[_currIndex];
+    // 防止遇到畸形url崩溃
+    NSURL *url = [NSURL URLWithString:urlS];
+    if (!url) {
+        return;
+    }
     if (!_playerItem) {
-         self.playerItem = [AVPlayerItem playerItemWithURL:[NSURL URLWithString:url]];
+        AVURLAsset *asset = self.assetCache[url.absoluteString];
+        if (!asset) {
+            asset = [AVURLAsset URLAssetWithURL:url options:nil];
+            self.assetCache[url.absoluteString] = asset;
+        }
+        NSArray *tracks = [asset tracksWithMediaType:AVMediaTypeVideo];
+        if (!tracks.count) return;  // 如果不是视频，直接return
+        _playerItem = [AVPlayerItem playerItemWithAsset:asset];
     }
     if (!_player) {
         self.player = [AVPlayer playerWithPlayerItem:self.playerItem];
@@ -1044,6 +1064,7 @@ float durationWithSourceAtIndex(CGImageSourceRef source, NSUInteger index) {
     if (_preIndex == _currIndex) {
         return;
     }
+    _preIndex = _currIndex;
     if (self.isPlaying) {
         [self stopVideo];
     }
